@@ -20,5 +20,5 @@ Position
 
 
 # Getting Started
-Download Gspot here: https://notabug.org/pgimeno/Gspot
-Place "gspot.lua" in the same directory as thicc, or change the variable ```gui```.
+Download Gspot here: https://notabug.org/pgimeno/Gspot  
+Place "gspot.lua" in the same directory as THICC, or change the variable ```gui```.
