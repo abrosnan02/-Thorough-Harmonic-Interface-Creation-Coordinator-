@@ -8,17 +8,10 @@ It unifies the Gspot GUI library and LOVE2D, making interface creation simple an
 It is designed to reduce development time by integrating drawing, input, and other functions into the library.
 
 # Features
-1. UDims. UDims make scaling easy. They can be constructed with a table with four number arguments, and cover positioning as well as sizing. There are two types of variables: ```scale``` and ```pixels```. The pixels variable is what you would expect. Scale is the width of the screen multiplied by the x or y. The scale dynamically updates when the screen is resized. These two combine to make scaling UIs quick and easy. Examples are listed below.
+1. UDims. UDims make scalable UIs easy. UDims allow for two types of sizes: scale and pixel. Scale takes the current width of the window or parent object, then multiplies it by your input. If you inputted, 0.5, it would take up half of the corresponding axis, and so on.  
 
-Size  
-```{xScale, xPixels, yScale, yPixels}```  
-```{1, 0, 0, 100}``` This spans the entire screen, but has a consistent Y of 100 pixels.  
-```{0.5, 0, 0.5, 100}``` This spans the half of the screen, and half of the height, plus 100 pixels.
+2. Dominant Axes. When positioning an object, it can have a normal (XY) axis, or either a YY or XX. When these are set, both scale sizes are multiplied by the dominant axis (if one is set), rather thaan the normal XY.  
 
-Position  
-```{xScale, xPixels, yScale, yPixels}```  
-```{.5, 100, 0.1, 100}``` This is halfway across the screen, plus 100 pixels. It is also a 10% down plus 100 pixels.  
-```{0.25, 0, 0, 50}``` This is a quarter across the screen, and 50 pixels down.  
 
 
 # Getting Started
