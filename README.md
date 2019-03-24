@@ -3,7 +3,9 @@ Thorough Harmonic Interface Creation Coordinator
 
 # What is THICC?
 THICC is a library for a library.
-It unifies the Gspot GUI library and LOVE2D, making interface creation simple and fast. It is also extremely customizable, and does not require any modification of the base Gspot library.
+It unifies the Gspot GUI library and LOVE2D, making interface creation simple and fast. It is also extremely customizable, and does not require any modification of the base Gspot library.  
+
+It is designed to reduce development time by integrating drawing, input, and other functions into the library.
 
 # Features
 1. UDims. UDims make scaling easy. They can be constructed with a table with four number arguments, and cover positioning as well as sizing. There are two types of variables: ```scale``` and ```pixels```. The pixels variable is what you would expect. Scale is the width of the screen multiplied by the x or y. The scale dynamically updates when the screen is resized. These two combine to make scaling UIs quick and easy. Examples are listed below.
