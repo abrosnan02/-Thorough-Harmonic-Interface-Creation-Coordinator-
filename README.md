@@ -14,4 +14,5 @@ It is designed to reduce development time by integrating drawing, input, and oth
 
 # Getting Started
 Download Gspot here: https://notabug.org/pgimeno/Gspot  
-Place "gspot.lua" in the same directory as THICC, or change the variable ```gui```.
+Place "gspot.lua" in the same directory as THICC, or change the variable ```gui```.  
+Check out the [wiki](https://github.com/EWalnut/THICC)
