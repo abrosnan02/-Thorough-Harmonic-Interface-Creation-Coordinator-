@@ -8,7 +8,7 @@ It unifies the Gspot GUI library and LOVE2D, making interface creation simple an
 It is designed to reduce development time by integrating drawing, input, and other functions into the library.
 
 # Features
-1. UDims. UDims make scalable UIs easy. UDims allow for two types of sizes: scale and pixel. Scale takes the current width of the window or parent object, then multiplies it by your input. For instance, an input of ```0.5``` would take up half of the corresponding axis, and so on.  
+1. UDims. UDims make scalable UIs easy. UDims allow for two types of sizes: scale and pixel. Scale takes the current width of the window or parent object, then multiplies it by your input. For instance, an input of ```0.5``` would take up half of the corresponding axis, and so on. This also dynamically scales when the window updates.  
 
 2. Dominant Axes. When positioning an object, it can have a normal (```XY```) axis, or either a ```YY``` or ```XX```. When these are set, both scale sizes are multiplied by the dominant axis, rather than the normal ```XY```.  
 
