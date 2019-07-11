@@ -2,17 +2,12 @@
 Thorough Harmonic Interface Creation Coordinator
 
 # What is THICC?
-THICC is a library for a library.
-It unifies the Gspot GUI library and LOVE2D, making interface creation simple and fast. It is also extremely customizable, and does not require any modification of the base Gspot library.  
+THICC is a GUI library created to enable the creation of beautiful GUIs easily. THICC has many features that replace using various functions, math, and drawables to streamline 
 
 It is designed to reduce development time by integrating drawing, input, and other functions into the library.
 
-# Features
-1. UDim2s. UDim2s make scalable UIs easy. UDim2s allow for two types of sizes: scale and pixel. Scale takes the current width of the window or parent object, then multiplies it by your input. For instance, an input of ```0.5``` would take up half of the corresponding axis, and so on. This also dynamically scales when the window updates. They work the same as Roblox if you need more reference.
-
-2. Dominant Axes. When positioning an object, it can have a normal (```XY```) axis, or either a ```YY``` or ```XX```. When these are set, both scale sizes are multiplied by the dominant axis, rather than the normal ```XY```. This can allow for consistent aspect ratios at different locations.  
+# Im skeptical about it, I want to try
+You can download a `.love` file [here](https://github.com/EWalnut/THICC). This file contains examples of the type of user interfaces that are possible with THICC.
 
 # Getting Started
-Download Gspot here: https://notabug.org/pgimeno/Gspot  
-Place "gspot.lua" in the same directory as THICC, or change the variable ```gui```.  
 Check out the [wiki](https://github.com/EWalnut/THICC)
