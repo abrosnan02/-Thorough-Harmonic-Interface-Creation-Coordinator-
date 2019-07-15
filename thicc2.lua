@@ -1,8 +1,6 @@
 --[[
     Thorough Harmonic Interface Creation Coordinator 2
     Anthony Brosnan, July 2019
-    (It's THICC2 because I created an unreleased version that
-    relied on the Gspot library, this is all original code)
 
     Independent library, optional tweening
     TODO: tweens, postprocessing, shadows, dynamic text and other scaling, outlines, textwrap, rotation
