@@ -4,7 +4,7 @@
 
     Independent library, optional tweening
     Easing equasion module available here: https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua 
-    TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets
+    TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets, textboxes
 
     This library uses the GPLv2 license, which can be read in the LICENSE.txt file.
 ]]--
@@ -17,6 +17,7 @@ local tweenFunctions = {}
 local dt = 0 --for one frame at the start no tweening can be performed
 local easingModule = require('easing')
 local mousePrevDown = nil
+local mouseClick = nil
 
 
 --/THICC Variables/-------------------------------------------------------------
@@ -201,7 +202,10 @@ local function newElement(size, pos, parent, zindex)
 
         tweens = {} --all active tweens applied to element
     }
-    
+
+    --auto zindex :)
+    if element.parent then element.zindex = element.parent.zindex end
+
     return element
 end
 
@@ -240,7 +244,7 @@ Thicc2.text = function(size, pos, parent, zindex)
     element.textTransparency = 0
     element.textColor = {255,255,255}
 
-
+    
     table.insert(elements, element)
     return element
 end
@@ -266,6 +270,11 @@ Thicc2.button = function(size, pos, parent, zindex)
     return element
 end
 
+--/Mouse Input/-----------------------------------------------------------------
+Thicc2.mouseClick = function(button)
+    mouseClick = button
+end
+
 --/Draw/------------------------------------------------------------------------
 local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
     local width, height = udim2(element,element.size[1],element.size[2],element.size[3],element.size[4],'size')
@@ -282,11 +291,15 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
 
     --detect hover/clicking
     if element.hoverColor then
-        if mouseX >= element.absolutePos[1] and mouseX <= element.absolutePos[1]+element.absoluteSize[1] and mouseY >= element.absolutePos[2] and mouseY <= element.absolutePos[2]+element.absoluteSize[2] then
+        if mouseX >= x and mouseX <= x+width and mouseY >= y and mouseY <= y+height then
             if mouse1Down then
                 love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
             else
                 love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
+            end
+            if mouseClick and element.type == 'button' then
+                if element['mouse'..tostring(mouseClick)..'Click'] then element['mouse'..tostring(mouseClick)..'Click']() end
+                mouseClick = nil
             end
         end
     end
@@ -300,17 +313,19 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
         love.graphics.setColor(element.imageColor[1]/255, element.imageColor[2]/255, element.imageColor[3]/255, math.abs(element.imageTransparency-1))
         love.graphics.draw(element.image, x, y, 0, width/imgWidth, height/imgHeight)-- ox, oy, kx, ky )
     elseif element.text then
-        local wrap = 99999999 --until a screen has this many X pixels it wont be a problem
-        local textY = element.absolutePos[2]
+        local wrap = 999999999 --until a screen has this many X pixels it wont be a problem
+        local textY = y
         local text = love.graphics.newText(element.font, element.text) --printf is faster but doesnt have Y aligment :(
 
         if element.wrapText then
-            wrap = element.absoluteSize[1]
+            wrap = width
+        elseif element.wrapText and element.horizontalAlign == 'center' then
+            wrap = text:getWidth()
         end
 
         --apply wrap and align
-        text:setf(element.text, wrap, element.horizontalAlign)
-
+        text:setf(element.text, width, element.horizontalAlign)
+        
         --set vertical alignment, no top bc it is default
         if element.verticalAlign == 'center' then
             textY = (height/2)-text:getHeight()/2
