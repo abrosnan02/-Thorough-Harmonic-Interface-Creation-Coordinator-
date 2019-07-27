@@ -290,7 +290,7 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
             end
         end
     end
-    
+
     --use math.floor to prevent blurriness
     love.graphics.rectangle('fill', math.floor(x), math.floor(y), math.floor(width), math.floor(height), element.radius,element.radius, element.radiusSegments)
 
@@ -389,8 +389,4 @@ Thicc2.update = function(delta) --required for tweens
 end
 
 --/Return/----------------------------------------------------------------------
-Thicc2.newEffect = newEffect
-Thicc2.newTween = newTween
-Thicc2.tweenSize = tweenSize
-Thicc2.tweenPos = tweenPos
 return Thicc2
