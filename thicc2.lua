@@ -1,6 +1,6 @@
 --[[
     Thorough Harmonic Interface Creation Coordinator 2
-    Anthony Brosnan, July 2019
+    Anthony Brosnan, July-September 2019
 
     Independent library, optional tweening
     Easing equasion module available here: https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua 
@@ -16,13 +16,12 @@ local effects = {}
 local tweenFunctions = {}
 local dt = 0 --for one frame at the start no tweening can be performed
 local easingModule = require('easing')
-local mousePrevDown = nil
 local mouseClick = nil
+local mouseDown = nil
 
 
 --/THICC Variables/-------------------------------------------------------------
-Thicc2.settings = { --unused atm
-}
+Thicc2.timeScale = 1 --multiplied by dt
 
 
 --/UDim2/-----------------------------------------------------------------------
@@ -33,7 +32,6 @@ local function udim2(element, xs, xp, ys, yp, size)
     if element.parent and element.parent.absoluteSize then
 		maxWidth = element.parent.absoluteSize[1]
         maxHeight = element.parent.absoluteSize[2]
-        
 	end
 
 	if size then --dont apply axis for size
@@ -143,7 +141,7 @@ end
 
 
 --/Base Element/----------------------------------------------------------------
-local function getChildren()
+local function getChildren(element)
     local children = {}
     
     for _,v in pairs(elements) do
@@ -155,8 +153,13 @@ local function getChildren()
     return children
 end
 
-local function getDescendants()
-    local descendants = {}
+local function getDescendants(element, descendants)
+    local descendants = descendants or {}
+
+    for _, v in pairs(element:getChildren()) do
+        table.insert(descendants, v)
+        element:getDescendants(descendants)
+    end
 
     return descendants
 end
@@ -165,7 +168,7 @@ local function newElement(size, pos, parent, zindex)
     local element = {
         size = size or {0,100,0,100}, --UDim2 sizes
         pos = pos or {0,0,0,0},
-        absoluteSize = nil, --actual sizes in pixels
+        absoluteSize = nil, --actual size/pos in pixels
         absolutePos = nil,
 
         rotation = 0,
@@ -186,7 +189,7 @@ local function newElement(size, pos, parent, zindex)
 
 
         getChildren = getChildren,
-        getDescendants = getDescendants,
+        --getDescendants = getDescendants,
 
         --assign tween functions to element
         tween = function(element, property, dest, duration, easing)
@@ -196,10 +199,15 @@ local function newElement(size, pos, parent, zindex)
             elseif type(element[property]) == 'table' then
                 tweenTable(element, property, dest, duration, easing)
             else
-                error('Unsupported tween type; ')
+                error('Unsupported tween type (may not be a property); ')
             end
         end,
-
+        remove = function(element)
+            for k, v in pairs(elements) do
+                if v == element then table.remove(elements, k) break end
+            end
+            
+        end,
         tweens = {} --all active tweens applied to element
     }
 
@@ -235,6 +243,7 @@ Thicc2.text = function(size, pos, parent, zindex)
     element.type = 'text'
     element.text = 'Hello world!'
     element.font = love.graphics.newFont(15)
+    element.textObject = love.graphics.newText(element.font, element.text) --make it once, keep framerate up :D
 
     --alignment only works with textWrap on
     element.horizontalAlign = 'center' --left, right, center
@@ -271,12 +280,18 @@ Thicc2.button = function(size, pos, parent, zindex)
 end
 
 --/Mouse Input/-----------------------------------------------------------------
+Thicc2.mouseDown = function(button)
+    mouseDown = button
+end
+
+
 Thicc2.mouseClick = function(button)
+    mouseDown = nil
     mouseClick = button
 end
 
 --/Draw/------------------------------------------------------------------------
-local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
+local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
     local width, height = udim2(element,element.size[1],element.size[2],element.size[3],element.size[4],'size')
     local x, y = udim2(element,element.pos[1],element.pos[2],element.pos[3],element.pos[4])
 
@@ -292,7 +307,7 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
     --detect hover/clicking
     if element.hoverColor then
         if mouseX >= x and mouseX <= x+width and mouseY >= y and mouseY <= y+height then
-            if mouse1Down then
+            if mouseDown then
                 love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
             else
                 love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
@@ -301,8 +316,11 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
                 if element['mouse'..tostring(mouseClick)..'Click'] then element['mouse'..tostring(mouseClick)..'Click']() end
                 mouseClick = nil
             end
+        else
+            mouseClick = nil
         end
     end
+
 
     --use math.floor to prevent blurriness
     love.graphics.rectangle('fill', math.floor(x), math.floor(y), math.floor(width), math.floor(height), element.radius,element.radius, element.radiusSegments)
@@ -313,31 +331,33 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY, mouse1Down)
         love.graphics.setColor(element.imageColor[1]/255, element.imageColor[2]/255, element.imageColor[3]/255, math.abs(element.imageTransparency-1))
         love.graphics.draw(element.image, x, y, 0, width/imgWidth, height/imgHeight)-- ox, oy, kx, ky )
     elseif element.text then
+        --put this at the top so default font is never shown
+        element.textObject:setFont(element.font)
+
         local wrap = 999999999 --until a screen has this many X pixels it wont be a problem
         local textY = y
-        local text = love.graphics.newText(element.font, element.text) --printf is faster but doesnt have Y aligment :(
 
         if element.wrapText then
             wrap = width
         elseif element.wrapText and element.horizontalAlign == 'center' then
-            wrap = text:getWidth()
+            wrap = element.textObject:getWidth()
         end
 
         --apply wrap and align
-        text:setf(element.text, width, element.horizontalAlign)
+        element.textObject:setf(element.text, width, element.horizontalAlign)
         
         --set vertical alignment, no top bc it is default
         if element.verticalAlign == 'center' then
-            textY = (height/2)-text:getHeight()/2
+            textY = (height/2)-element.textObject:getHeight()/2
         elseif element.verticalAlign == 'bottom' then
-            textY = height-text:getHeight()
+            textY = height-element.textObject:getHeight()
         end
 
         love.graphics.setColor(element.textColor[1]/255, element.textColor[2]/255, element.textColor[3]/255, math.abs(element.textTransparency-1))
-        love.graphics.setFont(element.font)
+        
         
         --keep text from getting blurry
-        love.graphics.draw(text, math.floor(x), math.floor(y+textY))
+        love.graphics.draw(element.textObject, math.floor(x), math.floor(y+textY))
     end
 end
 
@@ -373,7 +393,7 @@ end
 
 
 Thicc2.update = function(delta) --required for tweens
-    dt = delta
+    dt = delta*Thicc2.timeScale
     --update all tweens
     for _, element in pairs(elements) do
         if #element.tweens >  0 then --if there are tweens
