@@ -2,9 +2,14 @@
 Thorough Harmonic Interface Creation Coordinator
 
 ### What is THICC?
-THICC is a GUI library for Love2D created to enable the creation of beautiful GUIs easily. THICC has many features that replace using various functions, math, recurring code and drawables.
+THICC is a GUI library for Love2D created to enable the creation of dynamic GUIs easily. THICC has many features that replace using various functions, math, recurring code and drawables.
 
 ### What is possible with THICC?
+- Properly scaling aspect ratios
+- Pixel and screen size based elements (can be combined with single elements)
+- Dominant axes
+- Editable Z-Indexing
+- Much much more
 You can download a `.love` file [here](https://github.com/EWalnut/THICC) (Not tested on Love2D versions older than 11.2). This file contains examples of the type of user interfaces that are possible with THICC. 
 
 ### Getting Started
