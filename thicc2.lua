@@ -1,18 +1,20 @@
 --[[
     Thorough Harmonic Interface Creation Coordinator 2
-    Anthony Brosnan, July-September 2019
+    Anthony Brosnan, July 2019 - January 2020
 
     Independent library, optional tweening
-    Easing equasion module available here: https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua 
+    Easing equation module available here: https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua 
     TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets, textboxes
 
     This library uses the GPLv2 license, which can be read in the LICENSE.txt file.
+
+    Use hovering elements to only use the highest
 ]]--
 
 --/Main Variables/--------------------------------------------------------------
 local Thicc2 = {}
 local elements = {}
-local effects = {}
+local elementsUnderMouse = {}
 local tweenFunctions = {}
 local dt = 0 --for one frame at the start no tweening can be performed
 local easingModule = require('easing')
@@ -127,14 +129,14 @@ local function updateTween(tween) --updates delta and sends variables
     return tween.elapsed, tween.start, tween.dest-tween.start, tween.duration
 end
 
---retrieve all of the equasions from the module, you could add more to it if you wanted to
+--retrieve all of the equations from the module, you could add more to it if you wanted to
 if easingModule then
-    for name, equasion in pairs(easingModule) do 
+    for name, equation in pairs(easingModule) do 
         tweenFunctions[name] = function(tween)
             local t,b,c,d = updateTween(tween)
 
             if tween.elapsed > tween.duration then tween.elapsed = tween.duration end
-            return equasion(t,b,c,d)
+            return equation(t,b,c,d)
         end
     end
 end
@@ -153,7 +155,7 @@ local function getChildren(element)
     return children
 end
 
-local function getDescendants(element, descendants)
+local function getDescendants(element, descendants) --gay
     local descendants = descendants or {}
 
     for _, v in pairs(element:getChildren()) do
@@ -178,8 +180,8 @@ local function newElement(size, pos, parent, zindex)
         axis = 'XY', --XX, YY, XY
 
         visible = true,
-        childrenVisible = false, --when set to false, all children are hidden, doesnt change their "visible" value
-        backgroundColor = {100,100,100},
+        childrenVisible = false, --when set to false, all children are hidden, doesn't change their "visible" value
+        color = {100,100,100}, --BACKGROUND color
 
         radius = 0, --UDim2
         radiusSegments = 1, --UDim2
@@ -187,19 +189,20 @@ local function newElement(size, pos, parent, zindex)
         type = 'base', --modifying this has no effect but it doesnt benefit anything
         parent = parent or nil,
 
+        hovering = false,
 
         getChildren = getChildren,
         --getDescendants = getDescendants,
 
         --assign tween functions to element
         tween = function(element, property, dest, duration, easing)
-            --all encompassing tween function with same argument layouts
+            --encompasses all tween functions with same argument layouts
             if type(element[property]) == 'number' then
                 tweenNum(element, property, dest, duration, easing)
             elseif type(element[property]) == 'table' then
                 tweenTable(element, property, dest, duration, easing)
             else
-                error('Unsupported tween type (may not be a property); ')
+                error('Unsupported tween type "'..tostring(property)..'" (may not be a property of the element)')
             end
         end,
         remove = function(element)
@@ -245,7 +248,7 @@ Thicc2.text = function(size, pos, parent, zindex)
     element.font = love.graphics.newFont(15)
     element.textObject = love.graphics.newText(element.font, element.text) --make it once, keep framerate up :D
 
-    --alignment only works with textWrap on
+    --alignment only works with wrapText set to true
     element.horizontalAlign = 'center' --left, right, center
     element.verticalAlign = 'center' --top, bottom, center
     element.wrapText = false
@@ -263,32 +266,35 @@ Thicc2.button = function(size, pos, parent, zindex)
     element.type = 'button'
     element.clickColor = {150,150,150}
     element.hoverColor = {125,125,125}
+    element.autoButtonColor = true --dont change colors when hovering/clicking
     
-    --these do nothing when nil they're just a reminder
+    --replace nil with a function and it will run during the specified event
     element.hover = nil
     element.leave = nil
 
+    --other mouse buttons are available just replace the number
     element.mouse1Down = nil
     element.mouse2Down = nil
     element.mouse3Down = nil
-
+    
     element.mouse1Click = nil
     element.mouse2Click = nil
     element.mouse3Click = nil
-
+    
     return element
 end
+
 
 --/Mouse Input/-----------------------------------------------------------------
 Thicc2.mouseDown = function(button)
     mouseDown = button
 end
 
-
 Thicc2.mouseClick = function(button)
     mouseDown = nil
     mouseClick = button
 end
+
 
 --/Draw/------------------------------------------------------------------------
 local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
@@ -301,28 +307,35 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
 
 
     --Handle drawing
-    if not element.visible then return end
-    love.graphics.setColor(element.backgroundColor[1]/255, element.backgroundColor[2]/255, element.backgroundColor[3]/255, math.abs(element.transparency-1))
+    elementsUnderMouse = {}
+    if element.visible then
+        love.graphics.setColor(element.color[1]/255, element.color[2]/255, element.color[3]/255, math.abs(element.transparency-1))
 
-    --detect hover/clicking
-    if element.hoverColor then
-        if mouseX >= x and mouseX <= x+width and mouseY >= y and mouseY <= y+height then
-            if mouseDown then
-                love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
+        --detect hover/clicking and set color
+        if element.hoverColor then
+            
+            if mouseX >= x and mouseX <= x+width and mouseY >= y and mouseY <= y+height then
+                table.insert(elementsUnderMouse, element)
+                if element.hover and not element.hovering then element.hover() element.hovering = true end --send hover signal
+
+                if mouseDown then
+                    love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
+                else
+                    love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
+                end
+                
+                if mouseClick and element.type == 'button' then
+                    if element['mouse'..tostring(mouseClick)..'Click'] then element['mouse'..tostring(mouseClick)..'Click']() end
+                    mouseClick = nil
+                end
             else
-                love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
-            end
-            if mouseClick and element.type == 'button' then
-                if element['mouse'..tostring(mouseClick)..'Click'] then element['mouse'..tostring(mouseClick)..'Click']() end
                 mouseClick = nil
+                if element.leave and element.hovering then element.leave() element.hovering = false end --stop hovering button
             end
-        else
-            mouseClick = nil
         end
     end
 
-
-    --use math.floor to prevent blurriness
+    --use math.floor to prevent blurriness (decimals)
     love.graphics.rectangle('fill', math.floor(x), math.floor(y), math.floor(width), math.floor(height), element.radius,element.radius, element.radiusSegments)
 
     if element.image then
@@ -391,7 +404,6 @@ Thicc2.draw = function()
     love.graphics.setColor(1,1,1)
 end
 
-
 Thicc2.update = function(delta) --required for tweens
     dt = delta*Thicc2.timeScale
     --update all tweens
@@ -422,6 +434,7 @@ Thicc2.update = function(delta) --required for tweens
         end
     end
 end
+
 
 --/Return/----------------------------------------------------------------------
 return Thicc2
