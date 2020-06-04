@@ -17,4 +17,4 @@ You can download a `.love` file [here](https://github.com/EWalnut/THICC) (Not te
 Check out the [wiki](https://github.com/EWalnut/THICC)
 
 ### Tweening
-THICC has an optional tweening feature. This requires an equasion module available [here](https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua). If the library is not present tweening will result in an error.
+THICC has an optional tweening feature. This requires an equation module available [here](https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua). If the library is not present tweening will result in an error.
