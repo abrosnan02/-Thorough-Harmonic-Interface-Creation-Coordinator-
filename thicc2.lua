@@ -1,10 +1,10 @@
 --[[
     Thorough Harmonic Interface Creation Coordinator 2
-    Anthony Brosnan, July 2019 - January 2020
+    Anthony Brosnan, July 2019 - February 2020
 
     Independent library, optional tweening
     Easing equation module available here: https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua 
-    TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets, textboxes
+    TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets, textboxes, overall scaling
 
     This library uses the GPLv2 license, which can be read in the LICENSE.txt file.
 
@@ -233,7 +233,7 @@ end
 Thicc2.image = function(size, pos, parent, zindex)
     local element = newElement(size, pos, parent, zindex)
     element.type = 'image'
-    element.image = love.image.newImageData(1,1)
+    element.image = nil
     element.imageTransparency = 0
     element.imageColor = {255,255,255}
 
@@ -276,6 +276,11 @@ Thicc2.button = function(size, pos, parent, zindex)
     element.mouse1Down = nil
     element.mouse2Down = nil
     element.mouse3Down = nil
+
+    --used to create imagebuttons
+    element.image = nil
+    element.imageTransparency = 0
+    element.imageColor = {255,255,255}
     
     element.mouse1Click = nil
     element.mouse2Click = nil
