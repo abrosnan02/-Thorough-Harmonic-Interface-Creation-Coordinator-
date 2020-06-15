@@ -1,10 +1,10 @@
 --[[
     Thorough Harmonic Interface Creation Coordinator 2
-    Anthony Brosnan, July 2019 - February 2020
+    Anthony Brosnan, July 2019 - June 2020
 
     Independent library, optional tweening
     Easing equation module available here: https://github.com/EmmanuelOga/easing/blob/master/lib/easing.lua 
-    TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets, textboxes, overall scaling
+    TODO: padding, postprocessing, shadows, dynamic text and other scaling, outlines, rotation, UDim2 single sets, input boxes, overall scaling
 
     This library uses the GPLv2 license, which can be read in the LICENSE.txt file.
 
@@ -23,17 +23,30 @@ local mouseDown = nil
 
 
 --/THICC Variables/-------------------------------------------------------------
-Thicc2.timeScale = 1 --multiplied by dt
+Thicc2.timeScale = 1 --multiplier for delta
+Thicc2.updateCursor = false --changer cursor to hand if hovering over button, etc
+
+Thicc2.defaults = {
+    color = {100, 100, 100}, --background color
+    hoverColor = {125, 125, 125},
+    clickColor = {150, 150, 150}
+}
 
 
 --/UDim2/-----------------------------------------------------------------------
 local function udim2(element, xs, xp, ys, yp, size)
-	local maxWidth, maxHeight = love.graphics.getDimensions()
+    local maxWidth, maxHeight = love.graphics.getDimensions()
+    local x, y = 0, 0
 
 	--multiply scale by these
     if element.parent and element.parent.absoluteSize then
 		maxWidth = element.parent.absoluteSize[1]
         maxHeight = element.parent.absoluteSize[2]
+    end
+    
+    if element.parent and not size and element.parent.absolutePos then
+		x = element.parent.absolutePos[1]
+        y = element.parent.absolutePos[2]
 	end
 
 	if size then --dont apply axis for size
@@ -44,10 +57,12 @@ local function udim2(element, xs, xp, ys, yp, size)
         end
         element.absoluteSize = {(maxWidth*xs)+xp, (maxHeight*ys)+yp}
     else
-        element.absolutePos = {(maxWidth*xs)+xp, (maxHeight*ys)+yp}
+        --element.absolutePos = {(maxWidth*xs)+xp, (maxHeight*ys)+yp}
+        element.absolutePos = {(maxWidth*xs)+xp+x, (maxHeight*ys)+yp+y}
     end
     
-	return (maxWidth*xs)+xp, (maxHeight*ys)+yp
+
+    return (maxWidth*xs)+xp, (maxHeight*ys)+yp
 end
 
 local function udim1(xs, xp, height)
@@ -70,6 +85,10 @@ Thicc2.gradient = function(colors) --gradient({color1, color2, color3, ..., dire
     end
     local result = love.image.newImageData(direction and 1 or #colors, direction and #colors or 1)
     for i, color in ipairs(colors) do
+        pcall(function()
+            color[4] = math.abs(color[4]-1)
+        end)
+
         local x, y
         if direction then
             x, y = 0, i - 1
@@ -203,16 +222,16 @@ local function newElement(size, pos, parent, zindex)
 
         transparency = 0, --BACKGROUND transparency
         zindex = zindex or 1,
-        axis = 'XY', --XX, YY, XY
+        axis = 'XY', --XX, YY, XY, dominant axis for scale sizing
 
         visible = true,
         childrenVisible = false, --when set to false, all children are hidden, doesn't change their "visible" value
-        color = {100,100,100}, --BACKGROUND color
+        color = Thicc2.defaults.color, --BACKGROUND color
 
         radius = 0, --UDim2
         radiusSegments = 1, --UDim2
 
-        type = 'base', --modifying this has no effect but it doesnt benefit anything
+        type = 'base', --modifying this has no effect other than making your life worse for doing it
         parent = parent or nil,
 
         hovering = false,
@@ -262,6 +281,7 @@ Thicc2.image = function(size, pos, parent, zindex)
     element.image = nil
     element.imageTransparency = 0
     element.imageColor = {255,255,255}
+    element.imageScale = {1, 1}
 
     table.insert(elements, element)
     return element
@@ -290,8 +310,8 @@ end
 Thicc2.button = function(size, pos, parent, zindex)
     local element = Thicc2.text(size,pos,parent,zindex)
     element.type = 'button'
-    element.clickColor = {150,150,150}
-    element.hoverColor = {125,125,125}
+    element.clickColor = Thicc2.defaults.clickColor
+    element.hoverColor = Thicc2.defaults.hoverColor
     element.autoButtonColor = true --dont change colors when hovering/clicking
     
     --replace nil with a function and it will run during the specified event
@@ -307,6 +327,7 @@ Thicc2.button = function(size, pos, parent, zindex)
     element.image = nil
     element.imageTransparency = 0
     element.imageColor = {255,255,255}
+    element.imageScale = {1, 1}
     
     element.mouse1Click = nil
     element.mouse2Click = nil
@@ -336,32 +357,41 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
     if element.parent and element.parent.absoluteSize then x = x+element.parent.absolutePos[1] y = y+element.parent.absolutePos[2] end
     element.absoluteSize = {width,height} --set actual pixel size for children
 
-
     --Handle drawing
-    elementsUnderMouse = {}
+    --elementsUnderMouse = {}
     if element.visible then
         love.graphics.setColor(element.color[1]/255, element.color[2]/255, element.color[3]/255, math.abs(element.transparency-1))
 
         --detect hover/clicking and set color
         if element.hoverColor then
-            
             if mouseX >= x and mouseX <= x+width and mouseY >= y and mouseY <= y+height then
-                table.insert(elementsUnderMouse, element)
-                if element.hover and not element.hovering then element.hover() element.hovering = true end --send hover signal
-
-                if mouseDown then
-                    love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
-                else
-                    love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
-                end
-                
-                if mouseClick and element.type == 'button' then
-                    if element['mouse'..tostring(mouseClick)..'Click'] then element['mouse'..tostring(mouseClick)..'Click']() end
+                --table.insert(elementsUnderMouse, element)
+                if not element.hovering then
+                    if mouseDown then element.downBeforeHover = true end
+                    if element.hover then element.hover() end --send hover signal
+                    element.hovering = true
                     mouseClick = nil
                 end
+
+                if mouseDown and element.autoButtonColor and not element.downBeforeHover then
+                    love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
+                elseif element.autoButtonColor then
+                    love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
+                end
+
+                if mouseClick and not element.downBeforeHover and element.type == 'button' then
+                    if element['mouse'..tostring(mouseClick)..'Click'] then element['mouse'..tostring(mouseClick)..'Click']() end
+                    mouseClick = nil
+                elseif mouseClick then
+                    --prevent clicking if mouse was down before hover
+                    mouseClick = nil
+                    element.downBeforeHover = nil
+                end
             else
-                mouseClick = nil
-                if element.leave and element.hovering then element.leave() element.hovering = false end --stop hovering button
+                element.downBeforeHover = nil
+                element.hovering = false
+                
+                if element.leave then element.leave() end --stop hovering button
             end
         end
     end
@@ -373,11 +403,10 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
         --images dont support rounded corners :(
         local imgWidth, imgHeight = element.image:getDimensions()
         love.graphics.setColor(element.imageColor[1]/255, element.imageColor[2]/255, element.imageColor[3]/255, math.abs(element.imageTransparency-1))
-        love.graphics.draw(element.image, x, y, 0, width/imgWidth, height/imgHeight)-- ox, oy, kx, ky )
+        love.graphics.draw(element.image, x+(width-(width*element.imageScale[1]))/2, y+(height-(height*element.imageScale[2]))/2, 0, (width/imgWidth)*element.imageScale[1], (height/imgHeight)*element.imageScale[2])-- ox, oy, kx, ky )
     elseif element.text then
         --put this at the top so default font is never shown
         element.textObject:setFont(element.font)
-
         local wrap = 999999999 --until a screen has this many X pixels it wont be a problem
         local textY = y
 
@@ -395,6 +424,8 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
             textY = (height/2)-element.textObject:getHeight()/2
         elseif element.verticalAlign == 'bottom' then
             textY = height-element.textObject:getHeight()
+        else
+            textY = 0 
         end
 
         love.graphics.setColor(element.textColor[1]/255, element.textColor[2]/255, element.textColor[3]/255, math.abs(element.textTransparency-1))
@@ -427,7 +458,7 @@ Thicc2.draw = function()
         for _,element in pairs(layers[layer]) do
             local maxWidth, maxHeight = love.graphics.getDimensions()
             local mouseX, mouseY = love.mouse.getPosition()
-            draw(element, maxWidth, maxHeight, mouseX, mouseY, love.mouse.isDown(1))
+            draw(element, maxWidth, maxHeight, mouseX, mouseY)
         end        
     end
 
