@@ -24,7 +24,6 @@ local mouseDown = nil
 
 --/THICC Variables/-------------------------------------------------------------
 Thicc2.timeScale = 1 --multiplier for delta
-Thicc2.updateCursor = false --changer cursor to hand if hovering over button, etc
 
 Thicc2.defaults = {
     color = {100, 100, 100}, --background color
@@ -74,7 +73,7 @@ end
 
 
 --/Gradient/--------------------------------------------------------------------
-Thicc2.gradient = function(colors) --gradient({color1, color2, color3, ..., direction = 'horizontal' or 'vertical'}), taken from Love2D wiki
+Thicc2.gradient = function(colors) --gradient({color1, color2, color3, ..., direction = 'horizontal' or 'vertical'}), adapted from Love2D wiki
     local direction = colors.direction or "horizontal"
     if direction == "vertical" then
         direction = true
@@ -297,7 +296,8 @@ Thicc2.text = function(size, pos, parent, zindex)
     --alignment only works with wrapText set to true
     element.horizontalAlign = 'center' --left, right, center
     element.verticalAlign = 'center' --top, bottom, center
-    element.wrapText = false
+    element.wrapText = true
+    element.truncate = nil  --this is the truncated text, it renders if not set to nil (you need to manually truncate it)
 
     element.textTransparency = 0
     element.textColor = {255,255,255}
@@ -406,6 +406,9 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
         love.graphics.draw(element.image, x+(width-(width*element.imageScale[1]))/2, y+(height-(height*element.imageScale[2]))/2, 0, (width/imgWidth)*element.imageScale[1], (height/imgHeight)*element.imageScale[2])-- ox, oy, kx, ky )
     elseif element.text then
         --put this at the top so default font is never shown
+        local text = element.text
+        if element.truncate then text = element.truncate end
+
         element.textObject:setFont(element.font)
         local wrap = 999999999 --until a screen has this many X pixels it wont be a problem
         local textY = y
@@ -417,7 +420,7 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
         end
 
         --apply wrap and align
-        element.textObject:setf(element.text, width, element.horizontalAlign)
+        element.textObject:setf(text, wrap, element.horizontalAlign)
         
         --set vertical alignment, no top bc it is default
         if element.verticalAlign == 'center' then
