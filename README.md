@@ -6,7 +6,7 @@ THICC is a GUI library for Love2D created to enable the creation of dynamic GUIs
 
 ### What is possible with THICC?
 - Properly scaling aspect ratios
-- Pixel and screen size based elements (can be combined with single elements)
+- Pixel and screen size based elements (can both be used on single elements)
 - Dominant axes
 - Editable Z-Indexing
 - Much much more!
