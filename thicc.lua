@@ -54,21 +54,21 @@ local function udim2(element, xs, xp, ys, yp, size)
 		elseif element.axis:lower() == 'xx' then
 			maxHeight = maxWidth
         end
-        element.absoluteSize = {(maxWidth*xs)+xp, (maxHeight*ys)+yp}
+        element.absoluteSize = {(maxWidth * xs) + xp, (maxHeight * ys) + yp}
     else
-        --element.absolutePos = {(maxWidth*xs)+xp, (maxHeight*ys)+yp}
-        element.absolutePos = {(maxWidth*xs)+xp+x, (maxHeight*ys)+yp+y}
+        --element.absolutePos = {(maxWidth * xs) + xp, (maxHeight * ys) + yp}
+        element.absolutePos = {(maxWidth * xs) + xp + x, (maxHeight * ys) + yp + y}
     end
     
 
-    return (maxWidth*xs)+xp, (maxHeight*ys)+yp
+    return (maxWidth * xs) + xp, (maxHeight * ys) + yp
 end
 
 local function udim1(xs, xp, height)
     local maxWidth, maxHeight = love.graphics.getDimensions()
     if height then maxWidth = maxHeight end
 
-    return (maxWidth*xs)+xp
+    return (maxWidth * xs) + xp
 end
 
 
@@ -85,7 +85,7 @@ Thicc2.gradient = function(colors) --gradient({color1, color2, color3, ..., dire
     local result = love.image.newImageData(direction and 1 or #colors, direction and #colors or 1)
     for i, color in ipairs(colors) do
         pcall(function()
-            color[4] = math.abs(color[4]-1)
+            color[4] = math.abs(color[4] - 1)
         end)
 
         local x, y
@@ -94,7 +94,7 @@ Thicc2.gradient = function(colors) --gradient({color1, color2, color3, ..., dire
         else
             x, y = i - 1, 0
         end
-        result:setPixel(x, y, color[1]/255, color[2]/255, color[3]/255, color[4] or 255)
+        result:setPixel(x, y, color[1] / 255, color[2] / 255, color[3] / 255, color[4] or 255)
     end
     result = love.graphics.newImage(result)
     result:setFilter('linear', 'linear')
@@ -103,19 +103,19 @@ end
 
 
 --/Tweens/----------------------------------------------------------------------
-local function checkDupeTweens(element,type)
+local function checkDupeTweens(element, type)
     local tweens = {}
-    for k,v in pairs(element.tweens) do
+    for k, v in pairs(element.tweens) do
         if v.type == type then
-            table.insert(tweens,v)
+            table.insert(tweens, v)
         end
     end
 
-    for k,v in pairs(element.tweens) do --go through all element tweens
+    for k, v in pairs(element.tweens) do --go through all element tweens
         for kk, vv in pairs(tweens) do --check the same type as type
             if v == vv and #tweens > 1 then --remove any earlier tweens
                 table.remove(tweens,kk)
-                table.remove(element.tweens,k)
+                table.remove(element.tweens, k)
             end
         end
     end
@@ -145,12 +145,12 @@ local function tweenTable(element, property, dest, duration, easing)
         
     }
     --make tweens for each index
-    for k,v in pairs(element[property]) do
+    for k, v in pairs(element[property]) do
         tween['t'..k] = newTween(element[property][k], dest[k], duration, easing)
     end
 
     table.insert(element.tweens, tween)
-    checkDupeTweens(element,tween.type)
+    checkDupeTweens(element, tween.type)
 
     return tween
 end
@@ -163,24 +163,24 @@ local function tweenNum(element, property, dest, duration, easing)
         type = 'num'
     }
     table.insert(element.tweens, tween)
-    checkDupeTweens(element,tween.type)
+    checkDupeTweens(element, tween.type)
     assert(type(element[property]) == 'number', 'Property must be a string with the same name as a numbered property')
     return nil
 end
 
 local function updateTween(tween) --updates delta and sends variables
-    tween.elapsed = tween.elapsed+dt
-    return tween.elapsed, tween.start, tween.dest-tween.start, tween.duration
+    tween.elapsed = tween.elapsed + dt
+    return tween.elapsed, tween.start, tween.dest - tween.start, tween.duration
 end
 
 --retrieve all of the equations from the module, you could add more to it if you wanted to
 if easingModule then
     for name, equation in pairs(easingModule) do 
         tweenFunctions[name] = function(tween)
-            local t,b,c,d = updateTween(tween)
+            local t, b, c, d = updateTween(tween)
 
             if tween.elapsed > tween.duration then tween.elapsed = tween.duration end
-            return equation(t,b,c,d)
+            return equation(t, b, c, d)
         end
     end
 end
@@ -279,7 +279,7 @@ Thicc2.image = function(size, pos, parent, zindex)
     element.type = 'image'
     element.image = nil
     element.imageTransparency = 0
-    element.imageColor = {255,255,255}
+    element.imageColor = {255, 255, 255}
     element.imageScale = {1, 1}
 
     table.insert(elements, element)
@@ -300,7 +300,7 @@ Thicc2.text = function(size, pos, parent, zindex)
     element.truncate = nil  --this is the truncated text, it renders if not set to nil (you need to manually truncate it)
 
     element.textTransparency = 0
-    element.textColor = {255,255,255}
+    element.textColor = {255, 255, 255}
 
     
     table.insert(elements, element)
@@ -308,7 +308,7 @@ Thicc2.text = function(size, pos, parent, zindex)
 end
 
 Thicc2.button = function(size, pos, parent, zindex)
-    local element = Thicc2.text(size,pos,parent,zindex)
+    local element = Thicc2.text(size, pos, parent, zindex)
     element.type = 'button'
     element.clickColor = Thicc2.defaults.clickColor
     element.hoverColor = Thicc2.defaults.hoverColor
@@ -326,7 +326,7 @@ Thicc2.button = function(size, pos, parent, zindex)
     --used to create imagebuttons
     element.image = nil
     element.imageTransparency = 0
-    element.imageColor = {255,255,255}
+    element.imageColor = {255, 255, 255}
     element.imageScale = {1, 1}
     
     element.mouse1Click = nil
@@ -350,21 +350,21 @@ end
 
 --/Draw/------------------------------------------------------------------------
 local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
-    local width, height = udim2(element,element.size[1],element.size[2],element.size[3],element.size[4],'size')
-    local x, y = udim2(element,element.pos[1],element.pos[2],element.pos[3],element.pos[4])
+    local width, height = udim2(element,element.size[1], element.size[2], element.size[3], element.size[4], 'size')
+    local x, y = udim2(element,element.pos[1], element.pos[2], element.pos[3], element.pos[4])
 
     --account for parent position, this will look bad for 1 frame if things are not zindexed properly :(
-    if element.parent and element.parent.absoluteSize then x = x+element.parent.absolutePos[1] y = y+element.parent.absolutePos[2] end
-    element.absoluteSize = {width,height} --set actual pixel size for children
+    if element.parent and element.parent.absoluteSize then x = x + element.parent.absolutePos[1] y = y + element.parent.absolutePos[2] end
+    element.absoluteSize = {width, height} --set actual pixel size for children
 
     --Handle drawing
     --elementsUnderMouse = {}
     if element.visible then
-        love.graphics.setColor(element.color[1]/255, element.color[2]/255, element.color[3]/255, math.abs(element.transparency-1))
+        love.graphics.setColor(element.color[1] / 255, element.color[2] / 255, element.color[3] / 255, math.abs(element.transparency - 1))
 
         --detect hover/clicking and set color
         if element.hoverColor then
-            if mouseX >= x and mouseX <= x+width and mouseY >= y and mouseY <= y+height then
+            if mouseX >= x and mouseX <= x + width and mouseY >= y and mouseY <= y+height then
                 --table.insert(elementsUnderMouse, element)
                 if not element.hovering then
                     if mouseDown then element.downBeforeHover = true end
@@ -374,9 +374,9 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
                 end
 
                 if mouseDown and element.autoButtonColor and not element.downBeforeHover then
-                    love.graphics.setColor(element.clickColor[1]/255, element.clickColor[2]/255, element.clickColor[3]/255, math.abs(element.transparency-1))
+                    love.graphics.setColor(element.clickColor[1] / 255, element.clickColor[2] / 255, element.clickColor[3] / 255, math.abs(element.transparency - 1))
                 elseif element.autoButtonColor then
-                    love.graphics.setColor(element.hoverColor[1]/255, element.hoverColor[2]/255, element.hoverColor[3]/255, math.abs(element.transparency-1))
+                    love.graphics.setColor(element.hoverColor[1] / 255, element.hoverColor[2] / 255, element.hoverColor[3] / 255, math.abs(element.transparency - 1))
                 end
 
                 if mouseClick and not element.downBeforeHover and element.type == 'button' then
@@ -397,13 +397,13 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
     end
 
     --use math.floor to prevent blurriness (decimals)
-    love.graphics.rectangle('fill', math.floor(x), math.floor(y), math.floor(width), math.floor(height), element.radius,element.radius, element.radiusSegments)
+    love.graphics.rectangle('fill', math.floor(x), math.floor(y), math.floor(width), math.floor(height), element.radius, element.radius, element.radiusSegments)
 
     if element.image then
         --images dont support rounded corners :(
         local imgWidth, imgHeight = element.image:getDimensions()
-        love.graphics.setColor(element.imageColor[1]/255, element.imageColor[2]/255, element.imageColor[3]/255, math.abs(element.imageTransparency-1))
-        love.graphics.draw(element.image, x+(width-(width*element.imageScale[1]))/2, y+(height-(height*element.imageScale[2]))/2, 0, (width/imgWidth)*element.imageScale[1], (height/imgHeight)*element.imageScale[2])-- ox, oy, kx, ky )
+        love.graphics.setColor(element.imageColor[1] / 255, element.imageColor[2] / 255, element.imageColor[3] / 255, math.abs(element.imageTransparency - 1))
+        love.graphics.draw(element.image, x + (width - (width * element.imageScale[1])) / 2, y + (height - (height * element.imageScale[2])) / 2, 0, (width/imgWidth) * element.imageScale[1], (height/imgHeight) * element.imageScale[2])-- ox, oy, kx, ky )
     elseif element.text then
         --put this at the top so default font is never shown
         local text = element.text
@@ -424,14 +424,14 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
         
         --set vertical alignment, no top bc it is default
         if element.verticalAlign == 'center' then
-            textY = (height/2)-element.textObject:getHeight()/2
+            textY = (height / 2) - element.textObject:getHeight() / 2
         elseif element.verticalAlign == 'bottom' then
             textY = height-element.textObject:getHeight()
         else
             textY = 0 
         end
 
-        love.graphics.setColor(element.textColor[1]/255, element.textColor[2]/255, element.textColor[3]/255, math.abs(element.textTransparency-1))
+        love.graphics.setColor(element.textColor[1] / 255, element.textColor[2] / 255, element.textColor[3] / 255, math.abs(element.textTransparency - 1))
         
         
         --keep text from getting blurry
@@ -443,13 +443,13 @@ Thicc2.draw = function()
     --handle zindexing
 	local layers = {}
 	local layerNum = {}
-	for _,v in pairs(elements) do
+	for _, v in pairs(elements) do
         if layers[v.zindex] then
-            table.insert(layers[v.zindex],v)
+            table.insert(layers[v.zindex], v)
         else
 			table.insert(layerNum, v.zindex)
 			layers[v.zindex] = {}
-            table.insert(layers[v.zindex],v)
+            table.insert(layers[v.zindex], v)
 		end
 	end
 
@@ -457,8 +457,8 @@ Thicc2.draw = function()
     table.sort(layerNum)
 
     --render elements by layer
-    for _,layer in pairs(layerNum) do
-        for _,element in pairs(layers[layer]) do
+    for _, layer in pairs(layerNum) do
+        for _, element in pairs(layers[layer]) do
             local maxWidth, maxHeight = love.graphics.getDimensions()
             local mouseX, mouseY = love.mouse.getPosition()
             draw(element, maxWidth, maxHeight, mouseX, mouseY)
@@ -466,17 +466,17 @@ Thicc2.draw = function()
     end
 
     --reset color
-    love.graphics.setColor(1,1,1)
+    love.graphics.setColor(1, 1, 1)
 end
 
 Thicc2.update = function(delta) --required for tweens
-    dt = delta*Thicc2.timeScale
+    dt = delta * Thicc2.timeScale
     --update all tweens
     for _, element in pairs(elements) do
         if #element.tweens >  0 then --if there are tweens
             for k, tween in pairs(element.tweens) do
                 --update induvidual tween types    
-                if string.sub(tween.type,1,5) == 'table' then
+                if string.sub(tween.type, 1, 5) == 'table' then
                     if not tweenFunctions[tween.t1.easingStyle] then error('Unknown easing style "'..tween.t1.easingStyle..'"') end
                     
                     for i = 1, tween.indexes do
