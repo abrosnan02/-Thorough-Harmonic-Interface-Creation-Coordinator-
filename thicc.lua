@@ -224,11 +224,10 @@ local function newElement(size, pos, parent, zindex)
         axis = 'XY', --XX, YY, XY, dominant axis for scale sizing
 
         visible = true,
-        childrenVisible = false, --when set to false, all children are hidden, doesn't change their "visible" value
         color = Thicc2.defaults.color, --BACKGROUND color
 
         radius = 0, --UDim2
-        radiusSegments = 1, --UDim2
+        radiusSegments = 5, --UDim2
 
         type = 'base', --modifying this has no effect other than making your life worse for doing it
         parent = parent or nil,
@@ -350,6 +349,16 @@ end
 
 --/Draw/------------------------------------------------------------------------
 local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
+    local parent = element.parent
+    local lastParent
+    while parent do
+        lastParent = parent
+        if not parent.visible then break end
+        parent = parent.parent
+    end
+    
+    if lastParent and not lastParent.visible then return end
+
     local width, height = udim2(element,element.size[1], element.size[2], element.size[3], element.size[4], 'size')
     local x, y = udim2(element,element.pos[1], element.pos[2], element.pos[3], element.pos[4])
 
@@ -359,7 +368,10 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
 
     --Handle drawing
     --elementsUnderMouse = {}
+    
+
     if element.visible then
+        
         love.graphics.setColor(element.color[1] / 255, element.color[2] / 255, element.color[3] / 255, math.abs(element.transparency - 1))
 
         --detect hover/clicking and set color
@@ -403,7 +415,7 @@ local function draw(element, maxWidth, maxHeight, mouseX, mouseY)
         --images dont support rounded corners :(
         local imgWidth, imgHeight = element.image:getDimensions()
         love.graphics.setColor(element.imageColor[1] / 255, element.imageColor[2] / 255, element.imageColor[3] / 255, math.abs(element.imageTransparency - 1))
-        love.graphics.draw(element.image, x + (width - (width * element.imageScale[1])) / 2, y + (height - (height * element.imageScale[2])) / 2, 0, (width/imgWidth) * element.imageScale[1], (height/imgHeight) * element.imageScale[2])-- ox, oy, kx, ky )
+        love.graphics.draw(element.image, x + (width - (width * element.imageScale[1])) / 2, y + (height - (height * element.imageScale[2])) / 2, math.rad(element.rotation), (width/imgWidth) * element.imageScale[1], (height/imgHeight) * element.imageScale[2])-- ox, oy, kx, ky )
     elseif element.text then
         --put this at the top so default font is never shown
         local text = element.text
@@ -460,7 +472,7 @@ Thicc2.draw = function()
     for _, layer in pairs(layerNum) do
         for _, element in pairs(layers[layer]) do
             local maxWidth, maxHeight = love.graphics.getDimensions()
-            local mouseX, mouseY = love.mouse.getPosition()
+            local mouseX, mouseY = 0,0
             draw(element, maxWidth, maxHeight, mouseX, mouseY)
         end        
     end
